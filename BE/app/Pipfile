@@ -5,9 +5,8 @@ name = "pypi"
 
 [packages]
 flask = "*"
-flask-sqlalchemy = "*"
 python-dotenv = "*"
-mysql-connector-python = "*"
+firebase-admin = "*"
 
 [dev-packages]
 
