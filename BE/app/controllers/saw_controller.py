@@ -1,38 +1,53 @@
-from flask import Blueprint, request, jsonify, current_app
-from models.calculation_model import CalculationModel
+from typing import Literal
+from flask import Blueprint, request, jsonify
+from flask.wrappers import Response
+from app.models.calculation_model import CalculationModel
 import numpy as np
 
 saw_bp = Blueprint("saw_bp", __name__)
+calculation_model = CalculationModel()
 
 
 @saw_bp.route("/calculate", methods=["POST"])
-def calculate_saw():
+def calculate_saw() -> tuple[Response, Literal[400]] | tuple[Response, Literal[200]]:
     data = request.json
     criteria_weights = np.array(data["criteria_weights"])
     decision_matrix = np.array(data["decision_matrix"])
 
-    try:
-        scores = CalculationModel.simple_additive_weighting(
-            criteria_weights, decision_matrix
+    if decision_matrix.shape[1] != len(criteria_weights):
+        return (
+            jsonify(
+                {
+                    "message": "The number of criteria weights must match the number of columns in the decision matrix."
+                }
+            ),
+            400,
         )
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
 
-    return jsonify({"scores": scores.tolist()})
+    scores = calculation_model.simple_additive_weighting(
+        criteria_weights, decision_matrix
+    )
+
+    return jsonify({"scores": scores.tolist()}), 200
 
 
 @saw_bp.route("/save", methods=["POST"])
-def save_saw_results():
+def save_saw_results() -> tuple[Response, Literal[201]]:
     data = request.json
-    doc_ref = current_app.db.collection("results").document()
-    doc_ref.set(data)
+    method_name = "simple_additive_weighting"
 
-    return jsonify({"message": "Results saved successfully."})
+    calculation_model.save_results(
+        method_name,
+        np.array(data["criteria_weights"]),
+        np.array(data["decision_matrix"]),
+        np.array(data["scores"]),
+    )
+
+    return jsonify({"message": "Results saved successfully."}), 201
 
 
 @saw_bp.route("/results", methods=["GET"])
-def get_saw_results():
-    docs = current_app.db.collection("results").stream()
-    results = [doc.to_dict() for doc in docs]
+def get_saw_results() -> tuple[Response, Literal[200]]:
+    results = calculation_model.get_results()
 
-    return jsonify({"results": results})
+    return jsonify({"results": results}), 200
