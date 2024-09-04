@@ -14,18 +14,24 @@ def calculate_wp() -> tuple[Response, Literal[400]] | tuple[Response, Literal[20
     data = request.json
     criteria_weights = np.array(data["criteria_weights"])
     decision_matrix = np.array(data["decision_matrix"])
+    criteria_types = data.get("criteria_types")  # Added criteria_types
 
-    if decision_matrix.shape[1] != len(criteria_weights):
+    if (
+        decision_matrix.shape[1] != len(criteria_weights)
+        or len(criteria_types) != decision_matrix.shape[1]
+    ):
         return (
             jsonify(
                 {
-                    "message": "The number of criteria weights must match the number of columns in the decision matrix."
+                    "message": "The number of criteria weights and criteria types must match the number of columns in the decision matrix."
                 }
             ),
             400,
         )
 
-    scores = calculation_model.weighted_product(criteria_weights, decision_matrix)
+    scores = calculation_model.weighted_product(
+        criteria_weights, decision_matrix, criteria_types
+    )
 
     return jsonify({"scores": scores.tolist()}), 200
 

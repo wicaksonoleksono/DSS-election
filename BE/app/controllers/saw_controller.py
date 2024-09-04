@@ -13,6 +13,7 @@ def calculate_saw() -> tuple[Response, Literal[400]] | tuple[Response, Literal[2
     data = request.json
     criteria_weights = np.array(data["criteria_weights"])
     decision_matrix = np.array(data["decision_matrix"])
+    criteria_types = data.get("criteria_types")  # Added criteria_types
 
     if decision_matrix.shape[1] != len(criteria_weights):
         return (
@@ -25,7 +26,7 @@ def calculate_saw() -> tuple[Response, Literal[400]] | tuple[Response, Literal[2
         )
 
     scores = calculation_model.simple_additive_weighting(
-        criteria_weights, decision_matrix
+        criteria_weights, decision_matrix, criteria_types
     )
 
     return jsonify({"scores": scores.tolist()}), 200

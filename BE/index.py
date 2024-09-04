@@ -5,14 +5,14 @@ from app.utils.config import Config
 from app.controllers.saw_controller import saw_bp
 from app.controllers.wp_controller import wp_bp
 from app.connection.connection import Connection
-
+from flask_cors import CORS
 app = Flask(__name__)
 Config.init_firebase()
+CORS(app)
 
 # Register blueprints
 app.register_blueprint(saw_bp, url_prefix="/saw")
 app.register_blueprint(wp_bp, url_prefix="/wp")
-
 
 @app.route("/")
 def home() -> tuple[Response, Literal[200]] | tuple[Response, Literal[500]]:
