@@ -28,9 +28,13 @@ const Home: React.FC = () => {
 
     if (method === "saw") {
       console.log(data);
+      console.log("Data being sent to backend:", JSON.stringify(data, null, 2));
+
       result = await calculateSaw(data);
     } else if (method === "wp") {
       console.log(data);
+      console.log("Data being sent to backend:", JSON.stringify(data, null, 2));
+
       result = await calculateWp(data);
     }
 

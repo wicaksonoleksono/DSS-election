@@ -14,8 +14,10 @@ type Props = {
 
 const DynamicMatrix: React.FC<Props> = ({ onSubmit }) => {
   const [criteriaWeights, setCriteriaWeights] = useState<number[]>([0.0]);
-  const [criteriaTypes, setCriteriaTypes] = useState<string[]>(["benefit"]);
   const [decisionMatrix, setDecisionMatrix] = useState<Matrix>([[0]]);
+
+  const [criteriaTypes, setCriteriaTypes] = useState<string[]>(["benefit"]);
+
   const [criteriaNames, setCriteriaNames] = useState<string[]>(["Criteria 1"]);
   const [alternativeNames, setAlternativeNames] = useState<string[]>([
     "Alternative 1",
@@ -63,10 +65,11 @@ const DynamicMatrix: React.FC<Props> = ({ onSubmit }) => {
     setAlternativeNames(updatedAlternativeNames);
   };
 
-  const handleWeightChange = (index: number, value: number) => {
+  const handleWeightChange = (index: number, value: string) => {
     const updatedWeights = [...criteriaWeights];
-    updatedWeights[index] = value;
+    updatedWeights[index] = parseFloat(value) || 0;
     setCriteriaWeights(updatedWeights);
+    console.log("Updated Criteria Weights:", updatedWeights);
   };
 
   const handleTypeChange = (index: number, value: string) => {
@@ -78,11 +81,12 @@ const DynamicMatrix: React.FC<Props> = ({ onSubmit }) => {
   const handleMatrixChange = (
     rowIndex: number,
     colIndex: number,
-    value: number
+    value: string
   ) => {
     const newMatrix = [...decisionMatrix];
-    newMatrix[rowIndex][colIndex] = value;
+    newMatrix[rowIndex][colIndex] = parseFloat(value) || 0;
     setDecisionMatrix(newMatrix);
+    console.log("Updated Decision Matrix:", newMatrix);
   };
 
   const handleCriteriaNameChange = (index: number, name: string) => {
@@ -104,7 +108,16 @@ const DynamicMatrix: React.FC<Props> = ({ onSubmit }) => {
       criteria_types: criteriaTypes,
       alternative_names: alternativeNames,
     };
-    onSubmit(data);
+    const weightSum = data.criteria_weights.reduce(
+      (acc, curr) => acc + curr,
+      0
+    );
+
+    if (weightSum !== 1) {
+      window.alert("Harus sama dengan 1");
+    } else {
+      onSubmit(data);
+    }
   };
 
   return (
@@ -170,9 +183,9 @@ const DynamicMatrix: React.FC<Props> = ({ onSubmit }) => {
                   <input
                     className="border rounded px-2 py-1"
                     type="number"
-                    value={value}
+                    value={isNaN(value) ? "" : value}
                     onChange={(e) =>
-                      handleMatrixChange(rowIndex, colIndex, +e.target.value)
+                      handleMatrixChange(rowIndex, colIndex, e.target.value)
                     }
                   />
                 </td>
@@ -197,9 +210,10 @@ const DynamicMatrix: React.FC<Props> = ({ onSubmit }) => {
             <input
               className="border rounded px-2 py-1 mr-2"
               type="number"
-              value={weight}
-              onChange={(e) => handleWeightChange(index, +e.target.value)}
+              value={isNaN(weight) ? "" : weight}
+              onChange={(e) => handleWeightChange(index, e.target.value)}
             />
+
             <select
               className="border rounded px-2 py-1"
               value={criteriaTypes[index]}
